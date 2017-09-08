@@ -499,6 +499,7 @@ extern struct EFI_DEVICE_PATH_UTILITIES_PROTOCOL *DPUP;
 extern struct EFI_SIMPLE_TEXT_INPUT_EX_PROTOCOL *STIEP;
 extern struct EFI_UNICODE_COLLATION_PROTOCOL *UCP;
 extern struct EFI_GUID dpp_guid;
+extern struct EFI_GUID lip_guid;
 
 void efi_init(void *ImageHandle, struct EFI_SYSTEM_TABLE *SystemTable);
 
