@@ -4,6 +4,7 @@
 #include "graphics.h"
 #include "shell.h"
 #include "gui.h"
+#include "linux.h"
 
 #define WIDTH_PER_CH	8
 #define HEIGHT_PER_CH	20
@@ -11,6 +12,13 @@
 #define CURSOR_HEIGHT	4
 #define EXIT_BUTTON_WIDTH	20
 #define EXIT_BUTTON_HEIGHT	20
+#define TUX_NAME	L"itu"
+#define TUX_POS_X	400
+#define TUX_POS_Y	300
+#define TUX_WIDTH	84
+#define TUX_HEIGHT	100
+#define MAX_TUX_BUF	(TUX_WIDTH * TUX_HEIGHT * \
+			 sizeof(struct EFI_GRAPHICS_OUTPUT_BLT_PIXEL))
 
 struct EFI_GRAPHICS_OUTPUT_BLT_PIXEL cursor_tmp[CURSOR_HEIGHT][CURSOR_WIDTH] =
 {
@@ -22,6 +30,7 @@ struct EFI_GRAPHICS_OUTPUT_BLT_PIXEL cursor_tmp[CURSOR_HEIGHT][CURSOR_WIDTH] =
 int cursor_old_x;
 int cursor_old_y;
 struct FILE rect_exit_button;
+struct EFI_GRAPHICS_OUTPUT_BLT_PIXEL tux_img_buf[TUX_HEIGHT][TUX_WIDTH];
 
 void draw_cursor(int x, int y)
 {
@@ -108,6 +117,33 @@ unsigned char update_exit_button(int px, int py, unsigned char is_clicked)
 	return is_exit;
 }
 
+void load_tux(void)
+{
+	unsigned long long status;
+	struct EFI_FILE_PROTOCOL *root;
+	struct EFI_FILE_PROTOCOL *file;
+	unsigned long long buf_size = MAX_TUX_BUF;
+
+	status = SFSP->OpenVolume(SFSP, &root);
+	assert(status, L"error: SFSP->OpenVolume");
+
+	status = root->Open(root, &file, TUX_NAME, EFI_FILE_MODE_READ,
+			    EFI_FILE_READ_ONLY);
+	assert(status, L"error: root->Open");
+
+	status = file->Read(file, &buf_size, (void *)tux_img_buf);
+	check_warn_error(status, L"warning:file->Read");
+
+	status = file->Close(file);
+	status = root->Close(root);
+}
+
+void put_tux(void)
+{
+	blt2((unsigned char *)tux_img_buf, TUX_POS_X, TUX_POS_Y,
+	     TUX_WIDTH, TUX_HEIGHT);
+}
+
 int ls_gui(void)
 {
 	int file_num;
@@ -157,9 +193,12 @@ void gui(void)
 	unsigned char prev_rb = FALSE, executed_rb;
 	unsigned char is_exit = FALSE;
 
+	load_tux();
+
 	SPP->Reset(SPP, FALSE);
 	file_num = ls_gui();
 	put_exit_button();
+	put_tux();
 
 	while (!is_exit) {
 		ST->BootServices->WaitForEvent(1, &(SPP->WaitForInput), &waitidx);
@@ -200,11 +239,13 @@ void gui(void)
 							view(file_list[idx].name);
 						file_num = ls_gui();
 						put_exit_button();
+						put_tux();
 					}
 					if (prev_rb && !s.RightButton) {
 						edit(file_list[idx].name);
 						file_num = ls_gui();
 						put_exit_button();
+						put_tux();
 						executed_rb = TRUE;
 					}
 				} else {
@@ -225,11 +266,21 @@ void gui(void)
 				ST->ConOut->ClearScreen(ST->ConOut);
 				file_num = ls_gui();
 				put_exit_button();
+				put_tux();
 			}
 
 			/* 終了ボタン更新 */
 			is_exit = update_exit_button(px, py,
 						     prev_lb && !s.LeftButton);
+
+			/* TUXボタン更新 */
+			if (prev_lb && !s.LeftButton) {
+				if ((TUX_POS_X <= px) &&
+				    (px < (TUX_POS_X + TUX_WIDTH)) &&
+				    (TUX_POS_Y <= py) &&
+				    (py < TUX_POS_Y + TUX_HEIGHT))
+					boot_linux();
+			}
 
 			/* マウスの左右ボタンの前回の状態を更新 */
 			prev_lb = s.LeftButton;

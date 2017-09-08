@@ -75,3 +75,31 @@ void blt(unsigned char img[], unsigned int img_width, unsigned int img_height)
 		}
 	}
 }
+
+void blt2(unsigned char img[], unsigned int x, unsigned int y,
+	  unsigned int img_width, unsigned int img_height)
+{
+	unsigned char *fb;
+	unsigned int i, j, k, vr, hr, ofs = 0;
+
+	fb = (unsigned char *)GOP->Mode->FrameBufferBase;
+	vr = GOP->Mode->Info->VerticalResolution;
+	hr = GOP->Mode->Info->HorizontalResolution;
+
+	fb += (hr * y) * sizeof(struct EFI_GRAPHICS_OUTPUT_BLT_PIXEL);
+	for (i = y; i < vr; i++) {
+		if (i >= (y + img_height))
+			break;
+		fb += x * sizeof(struct EFI_GRAPHICS_OUTPUT_BLT_PIXEL);
+		for (j = x; j < hr; j++) {
+			if (j >= (x + img_width)) {
+				fb += (hr - x - img_width) * 4;
+				break;
+			}
+			for (k = 0; k < 3; k++)
+				*fb++ = img[ofs++];
+			*fb++ = 0xff;
+			ofs++;
+		}
+	}
+}

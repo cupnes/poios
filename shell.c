@@ -3,6 +3,7 @@
 #include "file.h"
 #include "graphics.h"
 #include "shell.h"
+#include "linux.h"
 #include "gui.h"
 
 #define MAX_COMMAND_LEN	100
@@ -213,7 +214,9 @@ void shell(void)
 		else if (!strcmp(L"view", com)) {
 			view(L"img");
 			ST->ConOut->ClearScreen(ST->ConOut);
-		} else if (!strcmp(L"exit", com))
+		} else if (!strcmp(L"linux", com))
+			boot_linux();
+		else if (!strcmp(L"exit", com))
 			is_exit = TRUE;
 		else
 			puts(L"Command not found.\r\n");

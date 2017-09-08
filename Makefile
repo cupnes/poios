@@ -1,6 +1,7 @@
 all: fs/EFI/BOOT/BOOTX64.EFI
 
-fs/EFI/BOOT/BOOTX64.EFI: efi.c common.c file.c graphics.c shell.c gui.c main.c
+fs/EFI/BOOT/BOOTX64.EFI: efi.c common.c file.c graphics.c shell.c gui.c linux.c \
+			main.c
 	mkdir -p fs/EFI/BOOT
 	x86_64-w64-mingw32-gcc -Wall -Wextra -e efi_main -nostdinc -nostdlib \
 	-fno-builtin -Wl,--subsystem,10 -o $@ $+
