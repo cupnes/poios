@@ -14,6 +14,7 @@ unsigned short getc(void);
 unsigned int gets(unsigned short *buf, unsigned int buf_size);
 int strcmp(const unsigned short *s1, const unsigned short *s2);
 void strncpy(unsigned short *dst, unsigned short *src, unsigned long long n);
+unsigned long long strlen(unsigned short *str);
 unsigned char check_warn_error(unsigned long long status, unsigned short *name);
 void assert(unsigned long long status, unsigned short *message);
 

@@ -95,6 +95,16 @@ void strncpy(unsigned short *dst, unsigned short *src, unsigned long long n)
 		*dst++ = *src++;
 }
 
+unsigned long long strlen(unsigned short *str)
+{
+	unsigned long long len = 0;
+
+	while (*str++ != L'\0')
+		len++;
+
+	return len;
+}
+
 unsigned char check_warn_error(unsigned long long status, unsigned short *message)
 {
 	if (status) {
